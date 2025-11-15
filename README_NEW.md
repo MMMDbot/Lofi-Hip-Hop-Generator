@@ -12,9 +12,30 @@ Un generador de música lofi hip hop con visualizaciones de aurora boreal y capa
 - 🌌 **Visualización Aurora Boreal**: Genera videos procedurales de auroras boreales sincronizadas con la música
 - 🎥 **Conversión MIDI a Audio**: Convierte automáticamente MIDI a archivos de audio de alta calidad
 - 📺 **Streaming en Vivo**: Stream directo a YouTube Live, Twitch u otros servicios RTMP
+- 🖥️ **GUI Incluida**: Interfaz gráfica completa para Windows/Linux/Mac
+- 🪟 **Soporte Windows**: Funciona perfectamente en Windows 10/11
 - ⚙️ **Configuración Flexible**: Sistema de configuración YAML centralizado
 - 🔄 **Arquitectura Modular**: Código limpio y bien organizado
 - 📊 **Logging Completo**: Monitoreo detallado de todas las operaciones
+
+## 🖥️ Interfaz Gráfica (GUI)
+
+**¡NUEVO!** Ahora incluye una interfaz gráfica completa - **no necesitas usar línea de comandos**:
+
+```bash
+python gui.py
+```
+
+La GUI permite:
+- ✅ Configurar todos los parámetros visualmente
+- ✅ Generar música con sliders interactivos
+- ✅ Entrenar el modelo con un clic
+- ✅ Hacer streaming directamente
+- ✅ Ver logs en tiempo real
+- ✅ Guardar configuraciones
+
+![GUI Preview](docs/gui_preview.png)
+*(Interfaz intuitiva y fácil de usar)*
 
 ## 🆕 Novedades en v2.0
 
@@ -68,6 +89,33 @@ Principales dependencias:
 
 ## 🚀 Instalación
 
+### 🪟 Para Windows
+
+**Ver guía completa**: [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md)
+
+```cmd
+# 1. Clonar repositorio
+git clone https://github.com/tu-usuario/Lofi-Hip-Hop-Generator.git
+cd Lofi-Hip-Hop-Generator
+
+# 2. Ejecutar instalador
+install.bat
+
+# 3. Instalar FFmpeg
+winget install ffmpeg
+
+# 4. Lanzar GUI
+venv\Scripts\activate
+python gui.py
+```
+
+**Requisitos previos Windows:**
+- Python 3.8+ (con "Add to PATH" marcado)
+- FFmpeg (instalar con winget o manualmente)
+- FluidSynth (opcional, para mejor audio)
+
+### 🐧 Para Linux
+
 ### 1. Clonar el Repositorio
 
 ```bash
@@ -105,6 +153,27 @@ streaming:
 ```
 
 ## 📖 Uso
+
+### 🖱️ Opción 1: Usar la GUI (Recomendado para principiantes)
+
+```bash
+# Linux/Mac
+python gui.py
+
+# Windows
+venv\Scripts\activate
+python gui.py
+```
+
+**La GUI incluye 5 pestañas:**
+
+1. **🎵 Generate**: Genera música y videos con sliders interactivos
+2. **🎓 Train Model**: Entrena el modelo con tus MIDI files
+3. **📺 Streaming**: Configura y inicia streaming a YouTube/Twitch
+4. **⚙️ Settings**: Ajusta resolución, FPS, colores de aurora, etc.
+5. **📋 Logs**: Monitorea el progreso en tiempo real
+
+### ⌨️ Opción 2: Línea de Comandos
 
 ### Entrenamiento del Modelo
 
