@@ -19,26 +19,33 @@ python --version
 
 ### 2. FFmpeg (Para procesamiento de video/audio)
 
+**⚠️ IMPORTANTE: FFmpeg es REQUERIDO para streaming y videos completos**
+
+**Ver guía detallada**: [INSTALL_FFMPEG_WINDOWS.md](INSTALL_FFMPEG_WINDOWS.md)
+
+**Instalación rápida:**
+
 **Opción A - Con winget (Recomendado):**
 ```cmd
 winget install ffmpeg
 ```
 
 **Opción B - Manual:**
-1. Descarga desde: https://www.gyan.dev/ffmpeg/builds/
-2. Descarga "ffmpeg-release-essentials.zip"
-3. Extrae el archivo ZIP a `C:\ffmpeg`
-4. Añade `C:\ffmpeg\bin` al PATH del sistema:
-   - Windows 11: Configuración → Sistema → Acerca de → Configuración avanzada del sistema → Variables de entorno
-   - Windows 10: Panel de Control → Sistema → Configuración avanzada del sistema → Variables de entorno
-   - Edita "Path" en "Variables del sistema"
-   - Añade nueva entrada: `C:\ffmpeg\bin`
-   - Haz clic en OK
+```cmd
+# 1. Descargar de: https://www.gyan.dev/ffmpeg/builds/
+# 2. Descargar "ffmpeg-release-essentials.zip"
+# 3. Extraer a C:\ffmpeg
+# 4. Añadir C:\ffmpeg\bin al PATH (ver guía completa)
+```
 
 **Verificar instalación:**
 ```cmd
+# Cerrar y abrir NUEVA ventana de CMD, luego:
 ffmpeg -version
 ```
+
+**Si ves la versión → ✅ Instalado correctamente**
+**Si dice "no se reconoce" → Sigue la guía completa en INSTALL_FFMPEG_WINDOWS.md**
 
 ### 3. FluidSynth (Para convertir MIDI a audio)
 

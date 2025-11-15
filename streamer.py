@@ -60,6 +60,34 @@ class LiveStreamer:
 
         full_rtmp_url = f"{rtmp_url}/{stream_key}"
 
+        # Check if FFmpeg is available
+        try:
+            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            import platform
+            if platform.system() == "Windows":
+                error_msg = (
+                    "FFmpeg not found!\n\n"
+                    "FFmpeg is required for streaming. Please install it:\n\n"
+                    "OPTION 1 - Winget (Recommended):\n"
+                    "  winget install ffmpeg\n\n"
+                    "OPTION 2 - Manual:\n"
+                    "  1. Download: https://www.gyan.dev/ffmpeg/builds/\n"
+                    "  2. Extract to C:\\ffmpeg\n"
+                    "  3. Add C:\\ffmpeg\\bin to PATH\n\n"
+                    "After installation, restart the application.\n"
+                    "See WINDOWS_INSTALL.md for detailed instructions."
+                )
+            else:
+                error_msg = (
+                    "FFmpeg not found!\n\n"
+                    "Please install FFmpeg:\n"
+                    "  Ubuntu/Debian: sudo apt-get install ffmpeg\n"
+                    "  macOS: brew install ffmpeg"
+                )
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
+
         logger.info(f"Starting stream to: {rtmp_url}")
         logger.info(f"Video source: {video_file}")
 
