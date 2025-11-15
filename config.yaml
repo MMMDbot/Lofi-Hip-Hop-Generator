@@ -1,0 +1,62 @@
+# Configuration for Lofi Hip Hop Generator with Aurora Streaming
+
+# Model Configuration
+model:
+  sequence_length: 32
+  lstm_units: 512
+  dropout_rate: 0.3
+  dense_units: 256
+  weights_file: 'lofi-hip-hop-weights-improvement-100-0.6290.hdf5'
+  batch_size: 64
+  epochs: 100
+
+# Data Configuration
+data:
+  midi_directory: 'midi_songs'
+  notes_file: 'data/notes'
+  output_directory: 'output'
+  waveform_directory: 'waveform'
+
+# Music Generation
+generation:
+  num_notes: 500
+  temperature: 1.0  # Higher = more random, Lower = more predictable
+  tempo: 80  # BPM
+
+# Audio Configuration
+audio:
+  sample_rate: 44100
+  soundfont: null  # Path to soundfont file, null to use default
+  format: 'wav'
+
+# Video Configuration
+video:
+  resolution: [1920, 1080]  # Width x Height
+  fps: 30
+  duration: 300  # seconds (5 minutes default)
+  aurora:
+    colors:
+      - [0, 255, 159]    # Green
+      - [0, 191, 255]    # Blue
+      - [138, 43, 226]   # Purple
+      - [255, 20, 147]   # Pink
+    wave_speed: 0.02
+    wave_complexity: 3
+    brightness: 0.8
+    stars_enabled: true
+    stars_count: 200
+
+# Streaming Configuration
+streaming:
+  enabled: false
+  platform: 'youtube'  # youtube, twitch, custom
+  rtmp_url: null  # Your RTMP URL
+  stream_key: null  # Your stream key
+  bitrate_video: '4500k'
+  bitrate_audio: '128k'
+
+# Output Configuration
+output:
+  video_filename: 'lofi_aurora_stream_{timestamp}.mp4'
+  audio_filename: 'lofi_output_{timestamp}.wav'
+  midi_filename: 'lofi_output_{timestamp}.mid'

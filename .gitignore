@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Model weights and outputs
+*.hdf5
+*.h5
+!lofi-hip-hop-weights-improvement-100-0.6290.hdf5  # Keep original weights
+!weights.hdf5  # Keep original weights
+output/
+*.mid
+*.midi
+!midi_songs/*.mid  # Keep training MIDI files
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.flv
+
+# Data
+data/notes
+*.pkl
+*.pickle
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Streaming credentials (IMPORTANT!)
+config.local.yaml
+secrets.yaml
+.env
+stream_keys.txt
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

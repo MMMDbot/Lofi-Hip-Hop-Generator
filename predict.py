@@ -1,30 +1,72 @@
-""" This module generates notes for a midi file using the
-    trained neural network """
-import pickle
-import numpy
-from music21 import instrument, note, stream, chord
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import LSTM
-from keras.layers import BatchNormalization as BatchNorm
-from keras.layers import Activation
+"""
+This module generates notes for a midi file using the trained neural network
 
-def generate():
-    """ Generate a piano midi file """
-    #load the notes used to train the model
-    with open('data/notes', 'rb') as filepath:
-        notes = pickle.load(filepath)
+UPDATED: Now uses modern TensorFlow/Keras and modular architecture
+For new code, use the modules in music_generator.py, etc.
+This file is kept for backward compatibility.
+"""
+import logging
 
-    # Get all pitch names
-    pitchnames = sorted(set(item for item in notes))
-    # Get all pitch names
-    n_vocab = len(set(notes))
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-    network_input, normalized_input = prepare_sequences(notes, pitchnames, n_vocab)
-    model = create_network(normalized_input, n_vocab)
-    prediction_output = generate_notes(model, network_input, pitchnames, n_vocab)
-    create_midi(prediction_output)
+try:
+    # Use new modular architecture
+    from music_generator import MusicGenerator
+    from config import get_config
+
+    def generate(num_notes=500, temperature=1.0, output_file=None, config_path='config.yaml'):
+        """
+        Generate a piano MIDI file
+
+        This function now uses the new modular architecture.
+        See music_generator.py for implementation details.
+
+        Args:
+            num_notes: Number of notes to generate
+            temperature: Sampling temperature (0.5-2.0)
+            output_file: Output MIDI file path
+            config_path: Path to configuration file
+        """
+        logger.info("Generating music with new modular architecture...")
+
+        generator = MusicGenerator(config_path)
+        midi_path = generator.generate_music(
+            num_notes=num_notes,
+            temperature=temperature,
+            output_filename=output_file
+        )
+
+        logger.info(f"Music generated: {midi_path}")
+        return midi_path
+
+except ImportError as e:
+    logger.error(f"Failed to import new modules: {e}")
+    logger.error("Falling back to legacy implementation...")
+
+    # Legacy fallback implementation
+    import pickle
+    import numpy
+    from music21 import instrument, note, stream, chord
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization as BatchNorm, Activation
+
+    def generate():
+        """Legacy generate function"""
+        with open('data/notes', 'rb') as filepath:
+            notes = pickle.load(filepath)
+
+        pitchnames = sorted(set(item for item in notes))
+        n_vocab = len(set(notes))
+
+        network_input, normalized_input = prepare_sequences(notes, pitchnames, n_vocab)
+        model = create_network(normalized_input, n_vocab)
+        prediction_output = generate_notes(model, network_input, pitchnames, n_vocab)
+        create_midi(prediction_output)
 
 def prepare_sequences(notes, pitchnames, n_vocab):
     """ Prepare the sequences used by the Neural Network """

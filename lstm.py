@@ -1,128 +1,182 @@
-""" This module prepares midi file data and feeds it to the neural
-    network for training """
-import glob
-import pickle
-import numpy
-from music21 import converter, instrument, note, chord
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import LSTM
-from keras.layers import Activation
-from keras.layers import BatchNormalization as BatchNorm
-from keras.utils import np_utils
-from keras.callbacks import ModelCheckpoint
+"""
+This module prepares midi file data and feeds it to the neural network for training
 
-def train_network():
-    """ Train a Neural Network to generate music """
-    notes = get_notes()
+UPDATED: Now uses modern TensorFlow/Keras and modular architecture
+For new code, use the modules in model.py, data_processor.py, etc.
+This file is kept for backward compatibility.
+"""
+import logging
+import sys
 
-    # get amount of pitch names
-    n_vocab = len(set(notes))
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-    network_input, network_output = prepare_sequences(notes, n_vocab)
+try:
+    # Use new modular architecture
+    from data_processor import MidiDataProcessor
+    from model import LofiMusicModel
+    from config import get_config
 
-    model = create_network(network_input, n_vocab)
+    def train_network(config_path='config.yaml'):
+        """
+        Train a Neural Network to generate music
 
-    train(model, network_input, network_output)
+        This function now uses the new modular architecture.
+        See model.py and data_processor.py for implementation details.
+        """
+        logger.info("Starting training with new modular architecture...")
 
-def get_notes():
-    """ Get all the notes and chords from the midi files in the ./midi_songs directory """
-    notes = []
+        config = get_config(config_path)
 
-    for file in glob.glob("midi_songs/*.mid"):
-        midi = converter.parse(file)
+        # Process MIDI files
+        logger.info("Processing MIDI files...")
+        processor = MidiDataProcessor(config_path)
+        notes = processor.get_notes_from_midi()
+        processor.save_notes()
 
-        print("Parsing %s" % file)
+        # Prepare sequences
+        logger.info("Preparing training sequences...")
+        network_input, network_output = processor.prepare_sequences(notes)
 
-        notes_to_parse = None
+        # Create and train model
+        logger.info("Creating and training model...")
+        model = LofiMusicModel(config_path)
+        model.create_model(network_input, processor.get_vocabulary_size())
 
-        try: # file has instrument parts
-            s2 = instrument.partitionByInstrument(midi)
-            notes_to_parse = s2.parts[0].recurse() 
-        except: # file has notes in a flat structure
-            notes_to_parse = midi.flat.notes
+        # Try to load existing weights if available
+        try:
+            model.load_weights()
+            logger.info("Loaded existing weights for continued training")
+        except FileNotFoundError:
+            logger.info("No existing weights found, training from scratch")
 
-        for element in notes_to_parse:
-            if isinstance(element, note.Note):
-                notes.append(str(element.pitch))
-            elif isinstance(element, chord.Chord):
-                notes.append('.'.join(str(n) for n in element.normalOrder))
+        model.train(network_input, network_output)
 
-    with open('data/notes', 'wb') as filepath:
-        pickle.dump(notes, filepath)
+        logger.info("Training complete!")
 
-    return notes
+        return model
 
-def prepare_sequences(notes, n_vocab):
-    """ Prepare the sequences used by the Neural Network """
-    sequence_length = 32
+except ImportError as e:
+    logger.error(f"Failed to import new modules: {e}")
+    logger.error("Falling back to legacy implementation...")
 
-    # get all pitch names
-    pitchnames = sorted(set(item for item in notes))
+    # Legacy fallback implementation
+    import glob
+    import pickle
+    import numpy
+    from music21 import converter, instrument, note, chord
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout, LSTM, Activation, BatchNormalization as BatchNorm
+    from tensorflow.keras.utils import to_categorical
+    from tensorflow.keras.callbacks import ModelCheckpoint
 
-     # create a dictionary to map pitches to integers
-    note_to_int = dict((note, number) for number, note in enumerate(pitchnames))
+    def train_network():
+        """Legacy training function"""
+        notes = get_notes()
+        n_vocab = len(set(notes))
 
-    network_input = []
-    network_output = []
+        if n_vocab == 0:
+            raise ValueError("No notes found!")
 
-    # create input sequences and the corresponding outputs
-    for i in range(0, len(notes) - sequence_length, 1):
-        sequence_in = notes[i:i + sequence_length]
-        sequence_out = notes[i + sequence_length]
-        network_input.append([note_to_int[char] for char in sequence_in])
-        network_output.append(note_to_int[sequence_out])
+        network_input, network_output = prepare_sequences(notes, n_vocab)
+        model = create_network(network_input, n_vocab)
+        train(model, network_input, network_output)
 
-    n_patterns = len(network_input)
+    def get_notes():
+        """Get all notes and chords from MIDI files"""
+        notes = []
 
-    # reshape the input into a format compatible with LSTM layers
-    network_input = numpy.reshape(network_input, (n_patterns, sequence_length, 1))
-    # normalize input
-    network_input = network_input / float(n_vocab)
+        for file in glob.glob("midi_songs/*.mid"):
+            try:
+                midi = converter.parse(file)
+                print("Parsing %s" % file)
 
-    network_output = np_utils.to_categorical(network_output)
+                notes_to_parse = None
 
-    return (network_input, network_output)
+                try:
+                    s2 = instrument.partitionByInstrument(midi)
+                    if s2 and len(s2.parts) > 0:
+                        notes_to_parse = s2.parts[0].recurse()
+                    else:
+                        notes_to_parse = midi.flat.notes
+                except (AttributeError, IndexError):
+                    notes_to_parse = midi.flat.notes
 
-def create_network(network_input, n_vocab):
-    """ create the structure of the neural network """
-    model = Sequential()
-    model.add(LSTM(
-        512,
-        input_shape=(network_input.shape[1], network_input.shape[2]),
-        recurrent_dropout=0.3,
-        return_sequences=True
-    ))
-    model.add(LSTM(512, return_sequences=True, recurrent_dropout=0.3,))
-    model.add(LSTM(512))
-    model.add(BatchNorm())
-    model.add(Dropout(0.3))
-    model.add(Dense(256))
-    model.add(Activation('relu'))
-    model.add(BatchNorm())
-    model.add(Dropout(0.3))
-    model.add(Dense(n_vocab))
-    model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
-    
-    model.load_weights('lofi-hip-hop-weights-improvement-100-0.6290.hdf5')
+                for element in notes_to_parse:
+                    if isinstance(element, note.Note):
+                        notes.append(str(element.pitch))
+                    elif isinstance(element, chord.Chord):
+                        notes.append('.'.join(str(n) for n in element.normalOrder))
 
-    return model
+            except Exception as e:
+                print(f"Error parsing {file}: {e}")
+                continue
 
-def train(model, network_input, network_output):
-    """ train the neural network """
-    filepath = "updated-lofi-hip-hop-weights-improvement-1{epoch:02d}-{loss:.4f}.hdf5"
-    checkpoint = ModelCheckpoint(
-        filepath,
-        monitor='loss',
-        verbose=0,
-        save_best_only=True,
-        mode='min'
-    )
-    callbacks_list = [checkpoint]
+        with open('data/notes', 'wb') as filepath:
+            pickle.dump(notes, filepath)
 
-    model.fit(network_input, network_output, epochs=100, batch_size=64, callbacks=callbacks_list)
+        return notes
+
+    def prepare_sequences(notes, n_vocab):
+        """Prepare the sequences used by the Neural Network"""
+        sequence_length = 32
+        pitchnames = sorted(set(item for item in notes))
+        note_to_int = dict((note, number) for number, note in enumerate(pitchnames))
+
+        network_input = []
+        network_output = []
+
+        for i in range(0, len(notes) - sequence_length, 1):
+            sequence_in = notes[i:i + sequence_length]
+            sequence_out = notes[i + sequence_length]
+            network_input.append([note_to_int[char] for char in sequence_in])
+            network_output.append(note_to_int[sequence_out])
+
+        n_patterns = len(network_input)
+        network_input = numpy.reshape(network_input, (n_patterns, sequence_length, 1))
+        network_input = network_input / float(n_vocab)
+        network_output = to_categorical(network_output)
+
+        return (network_input, network_output)
+
+    def create_network(network_input, n_vocab):
+        """Create the structure of the neural network"""
+        model = Sequential()
+        model.add(LSTM(512, input_shape=(network_input.shape[1], network_input.shape[2]),
+                      recurrent_dropout=0.3, return_sequences=True))
+        model.add(LSTM(512, return_sequences=True, recurrent_dropout=0.3))
+        model.add(LSTM(512))
+        model.add(BatchNorm())
+        model.add(Dropout(0.3))
+        model.add(Dense(256))
+        model.add(Activation('relu'))
+        model.add(BatchNorm())
+        model.add(Dropout(0.3))
+        model.add(Dense(n_vocab))
+        model.add(Activation('softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+        try:
+            model.load_weights('lofi-hip-hop-weights-improvement-100-0.6290.hdf5')
+            print("Loaded existing weights")
+        except:
+            print("No existing weights found, training from scratch")
+
+        return model
+
+    def train(model, network_input, network_output):
+        """Train the neural network"""
+        filepath = "output/weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
+        checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1,
+                                    save_best_only=True, mode='min')
+        callbacks_list = [checkpoint]
+
+        model.fit(network_input, network_output, epochs=100, batch_size=64,
+                 callbacks=callbacks_list)
 
 if __name__ == '__main__':
     train_network()
