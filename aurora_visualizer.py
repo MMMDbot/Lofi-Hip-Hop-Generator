@@ -116,11 +116,11 @@ class AuroraVisualizer:
                     # Add some horizontal variation
                     color_variation = 1.0 + 0.2 * np.sin(x[i] * 3 + time_offset)
 
-                    # Set pixel color with alpha blending
+                    # Set pixel color with alpha blending (clip to valid range)
                     wave[y, i] = [
-                        int(color[0] * color_variation),
-                        int(color[1] * color_variation),
-                        int(color[2] * color_variation),
+                        int(np.clip(color[0] * color_variation, 0, 255)),
+                        int(np.clip(color[1] * color_variation, 0, 255)),
+                        int(np.clip(color[2] * color_variation, 0, 255)),
                         alpha
                     ]
 

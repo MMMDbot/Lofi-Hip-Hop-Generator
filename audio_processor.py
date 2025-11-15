@@ -118,10 +118,29 @@ class AudioProcessor:
 
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             logger.error(f"TiMidity conversion failed: {e}")
-            raise RuntimeError(
-                "MIDI to audio conversion failed. "
-                "Please install FluidSynth or TiMidity++."
-            )
+
+            # Provide helpful Windows-specific instructions
+            import platform
+            if platform.system() == "Windows":
+                error_msg = (
+                    "MIDI to audio conversion failed.\n\n"
+                    "For Windows, please install FluidSynth:\n"
+                    "1. Download from: https://github.com/FluidSynth/fluidsynth/releases\n"
+                    "2. Or install via MSYS2: pacman -S mingw-w64-x86_64-fluidsynth\n"
+                    "3. Add FluidSynth to your PATH\n\n"
+                    "See WINDOWS_INSTALL.md for detailed instructions.\n\n"
+                    "Note: The MIDI file was created successfully. "
+                    "You can continue without audio or install FluidSynth for audio conversion."
+                )
+            else:
+                error_msg = (
+                    "MIDI to audio conversion failed. "
+                    "Please install FluidSynth or TiMidity++.\n"
+                    "Ubuntu/Debian: sudo apt-get install fluidsynth\n"
+                    "macOS: brew install fluidsynth"
+                )
+
+            raise RuntimeError(error_msg)
 
     def add_background_audio(
         self,

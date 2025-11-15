@@ -134,12 +134,14 @@ class LofiMusicModel:
         output_dir = Path(self.config.get('data.output_directory', 'output'))
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        filepath = str(output_dir / "weights-improvement-{epoch:02d}-{loss:.4f}.hdf5")
+        # Use .keras format for Keras 3.x compatibility
+        filepath = str(output_dir / "weights-improvement-{epoch:02d}-{loss:.4f}.keras")
         checkpoint = ModelCheckpoint(
             filepath,
             monitor='loss',
             verbose=1,
             save_best_only=True,
+            save_weights_only=False,  # Save full model in .keras format
             mode='min'
         )
         callbacks_list = [checkpoint]
